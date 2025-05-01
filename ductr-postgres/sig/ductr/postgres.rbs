@@ -1,0 +1,244 @@
+# :nodoc:
+module Ductr
+  # 
+  # ## PostgreSQL adapter for Ductr ETL
+  # This gem provides useful controls to operate Ductr ETL with PostgreSQL databases.
+  # 
+  # To get details about the database connection handling, checkout the {Ductr::Postgres::Adapter} class.
+  # 
+  # ### Sources
+  # - {Ductr::Postgres::BasicSource} Yields rows one by one.
+  # - {Ductr::Postgres::PaginatedSource} Allows to select a big number of rows by relying on pagination.
+  # 
+  # ### Lookups
+  # - {Ductr::Postgres::BasicLookup} Executes one query per row and merge the looked up row with the current row.
+  # - {Ductr::Postgres::BufferedLookup} Executes one query for a bunch of rows and let you implement the matching logic.
+  # - {Ductr::Postgres::MatchLookup} Executes one query for a bunch of rows and abstracts the matching logic.
+  # 
+  # ### Destinations
+  # - {Ductr::Postgres::BasicDestination} Writes rows one by one.
+  # - {Ductr::Postgres::BufferedDestination} Accumulates rows in a buffer to write them by batch.
+  # - {Ductr::Postgres::BufferedUpsertDestination} Accumulates rows in a buffer to upsert them by batch.
+  module Postgres
+    VERSION: String
+
+    # 
+    # The PostgreSQL adapter implement the required #open! and #close! methods to handle the database connection.
+    # The adapter is registered as `:postgres` to use it, add `adapter: postgres` to the YAML configuration e.g.:
+    # 
+    # ```yml
+    # # config/development.yml
+    # adapters:
+    #   some_postgres_database:
+    #     adapter: postgres
+    #     host: localhost
+    #     user: postgres
+    #     password: s3cr3t
+    #     database: example
+    # ```
+    # 
+    # @see https://sequel.jeremyevans.net/rdoc/files/doc/opening_databases_rdoc.html#label-General+connection+options
+    #   General sequel options
+    # @see https://sequel.jeremyevans.net/rdoc/files/doc/opening_databases_rdoc.html#label-postgres
+    #   PostgreSQL specific options
+    class Adapter < Ductr::Adapter
+      # sord warn - Sequel::Database wasn't able to be resolved to a constant in this project
+      # Opens the database connection with the adapter's configuration.
+      # 
+      # _@return_ — The database connection instance
+      def open!: () -> Sequel::Database
+
+      # Closes the database connection.
+      def close!: () -> void
+
+      # sord warn - Sequel::Database wasn't able to be resolved to a constant in this project
+      # _@return_ — The database connection instance
+      attr_reader db: Sequel::Database?
+    end
+
+    # 
+    # A lookup control that execute one query per row, registered as `:basic`.
+    # The job's method must return a row which will merged with the current row:
+    # 
+    #   lookup :some_postgres_database, :basic
+    #   def my_lookup(db, row)
+    #     db[:items_bis].where(item: row[:id]).limit(1)
+    #   end
+    # 
+    # As the control merge the looked up row with the current row,
+    # ensure that column names are different or they will be overwritten.
+    # 
+    # If the lookup returns a falsy value, nothing won't be merged with the current row.
+    class BasicLookup < Ductr::ETL::Transform
+      # Calls the job's method to merge its result with the current row.
+      # 
+      # _@param_ `row` — The current row, preferably a Hash
+      # 
+      # _@return_ — The row merged with looked up row or the untouched row if nothing was found
+      def process: (::Hash[Symbol, Object] row) -> ::Hash[Symbol, Object]
+    end
+
+    # 
+    # A lookup control that execute the query for a bunch of rows, registered as `:match`.
+    # 
+    # Accept the `:buffer_size` option, default value is 10 000.
+    # Accept the `:merge` option, mandatory an array with two entries:
+    # - The first one is the looked up row key to match.
+    # - The second one is the buffer row key to match.
+    # 
+    # Unless the `:buffered` lookup, this one abstracts the row matching logic by assuming that
+    # you want to merge rows based on a key couple e.g. primary / foreign keys:
+    # 
+    #   lookup :some_postgres_database, :match, merge: [:id, :item], buffer_size: 42
+    #   def merge_with_stuff(db, ids)
+    #     db[:items_bis].where(item: ids)
+    #   end
+    class MatchLookup < Ductr::ETL::BufferedTransform
+      # The looked up row key to match.
+      # 
+      # _@return_ — The column name
+      def from_key: () -> Symbol
+
+      # The buffer row key to match.
+      # 
+      # _@return_ — The column name
+      def to_key: () -> Symbol
+
+      # Opens the database if needed, calls the job's method and merges
+      # the looked up rows with corresponding buffer rows.
+      def on_flush: () ?{ (::Hash[Symbol, Object] row) -> void } -> void
+
+      # Find the corresponding row into the buffer.
+      # 
+      # _@param_ `row` — The looked up row
+      # 
+      # _@return_ — the matching row if exists
+      def buffer_find: (::Hash[Symbol, Object] row) -> ::Hash[Symbol, Object]?
+
+      # Maps the buffer keys into an array.
+      # 
+      # _@return_ — The keys array
+      def buffer_keys: () -> ::Array[(Integer | String)]
+    end
+
+    # 
+    # A lookup control that execute the query for a bunch of rows, registered as `:buffered`.
+    # Accept the `:buffer_size` option, default value is 10 000.
+    # You have to implement your own row matching logic:
+    # 
+    #   lookup :some_postgres_database, :buffered, buffer_size: 42
+    #   def my_lookup(db, buffer, &)
+    #     ids = buffer.map {|row| row[:id]}
+    #     db[:items].where(item: ids).each do |row|
+    #       match = buffer.find { |r| r[:id] == row[:item] }
+    # 
+    #       next yield(row) unless match
+    # 
+    #       yield(row.merge match)
+    #     end
+    #   end
+    class BufferedLookup < Ductr::ETL::BufferedTransform
+      # Opens the database if needed, calls the job's method and pass the each block to it.
+      def on_flush: () -> void
+    end
+
+    # 
+    # The rufus-scheduler handler class.
+    # @see https://github.com/jmettraux/rufus-scheduler#scheduling-handler-instances
+    #   For further information
+    class PollingHandler
+      # sord warn - Ductr::Adapter wasn't able to be resolved to a constant in this project
+      # Creates the handler based on the given scheduler, its method name and the trigger's adapter instance.
+      # 
+      # _@param_ `method` — The scheduler's method
+      # 
+      # _@param_ `adapter` — The trigger's adapter
+      def initialize: (Method method, Ductr::Adapter adapter) -> void
+
+      # The callable method used by the trigger, actually calls the scheduler's method.
+      def call: () -> void
+    end
+
+    # 
+    # A trigger based on the RufusTrigger, runs the PollingHandler at the given timing.
+    # The handler calls the scheduler's method with a block which compares the yield result with the previous one.
+    # If they are different, yield returns true:
+    # 
+    #   trigger :my_database, :polling, interval: "1min"
+    #   def check_timestamp(db) # will perform MyJob if the name have changed
+    #     return unless yield(db[:items].select(:name).first)
+    # 
+    #     MyJob.perform_later
+    #   end
+    class PollingTrigger < Ductr::RufusTrigger
+      # Closes the connection if the scheduler is stopped.
+      def stop: () -> void
+
+      # sord duck - #call looks like a duck type, replacing with untyped
+      # Returns a callable object, allowing rufus-scheduler to call it.
+      # 
+      # _@param_ `scheduler` — The scheduler instance
+      # 
+      # _@param_ `method` — The scheduler's method
+      # 
+      # _@param_ `**` — The option passed to the trigger annotation
+      # 
+      # _@return_ — A callable object
+      def callable: (Method method) -> untyped
+    end
+
+    # 
+    # A source control that yields rows usnig the PostgreSQL streaming feature, registered as `:streamed`:
+    # 
+    #   source :some_postgres_database, :streamed
+    #   def select_some_stuff(db)
+    #     db[:items].limit(42)
+    #   end
+    # 
+    # You can select a large number of rows, without worrying about pagination handling or memory usage.
+    class StreamedSource < Ductr::ETL::Source
+      # Opens the database, calls the job's method and iterate over the query results.
+      def each: () -> void
+    end
+
+    # 
+    # A destination control that accumulates rows in a buffer to write them by batch, registered as `:buffered`.
+    # Accept the `:buffer_size` option, default value is 10 000:
+    # 
+    #   destination :some_postgres_database, :buffered, buffer_size: 42
+    #   def my_destination(db, buffer)
+    #     db[:items].multi_insert(buffer)
+    #   end
+    # 
+    # @see more Ductr::ETL::BufferedDestination
+    class BufferedDestination < Ductr::ETL::BufferedDestination
+      # Open the database if needed and call the job's method to run the query.
+      def on_flush: () -> void
+    end
+
+    # 
+    # A destination control that accumulates rows in a buffer to upsert them by batch, registered as `:buffered_upsert`.
+    # Accept the `:buffer_size` option, default value is 10 000:
+    # 
+    #   destination :some_postgres_database, :buffered_upsert, buffer_size: 42
+    #   def my_destination(buffer, excluded, db)
+    #     db[:items].insert_conflict(target: :id, update: excluded).multi_insert(buffer)
+    #   end
+    # 
+    # @see more Ductr::ETL::BufferedDestination
+    class BufferedUpsertDestination < Ductr::ETL::BufferedDestination
+      # Open the database if needed and call the job's method to run the query.
+      def on_flush: () -> void
+
+      # sord warn - Sequel::SQL::QualifiedIdentifier wasn't able to be resolved to a constant in this project
+      # Generate the excluded keys hash e.g.
+      # 
+      # ```ruby
+      # {a: Sequel[:excluded][:a]}
+      # ```
+      # 
+      # _@return_ — The excluded keys hash
+      def excluded: () -> ::Hash[Symbol, Sequel::SQL::QualifiedIdentifier]
+    end
+  end
+end
