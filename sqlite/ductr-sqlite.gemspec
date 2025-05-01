@@ -1,17 +1,18 @@
 # frozen_string_literal: true
 
+require_relative "../mono_repo"
 require_relative "lib/ductr/sqlite/version"
 
 Gem::Specification.new do |spec|
   spec.name = "ductr-sqlite"
   spec.version = Ductr::SQLite::VERSION
   spec.authors = ["Mathieu MOREL"]
-  spec.email = ["mathieu@lamanufacture.dev"]
+  spec.email = ["matmorel@users.noreply.github.com"]
   spec.licenses = ["LGPL-3.0-or-later"]
 
   spec.summary = "SQLite adapter for Ductr using the `sequel` gem"
   spec.description = "Allows ductr to interact with SQLite DMBS."
-  spec.homepage = "https://github.com/ductr-io/ductr"
+  spec.homepage = "https://github.com/matmorel/ductr"
   spec.required_ruby_version = ">= 3.1.0"
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
@@ -32,16 +33,9 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "ductr", "~> 0.2"
-  spec.add_dependency "sequel", "~> 5.67"
-  spec.add_dependency "sqlite3", "~> 1.6"
+  MonoRepo.add_development_dependencies(spec)
 
-  spec.add_development_dependency "rake", "~> 13.0"
-  spec.add_development_dependency "redcarpet", "~> 3.6"
-  spec.add_development_dependency "rspec", "~> 3.12"
-  spec.add_development_dependency "rubocop", "~> 1.50"
-  spec.add_development_dependency "rubocop-rspec", "~> 2.20"
-  spec.add_development_dependency "simplecov", "~> 0.22"
-  spec.add_development_dependency "sord", "~> 5.0"
-  spec.add_development_dependency "yard", "~> 0.9"
+  spec.add_dependency(*MonoRepo::DUCTR)
+  spec.add_dependency(*MonoRepo::SEQUEL)
+  spec.add_dependency "sqlite3", "~> 2.6"
 end

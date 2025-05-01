@@ -2,35 +2,49 @@ PATH
   remote: .
   specs:
     ductr (0.2.3)
-      activejob (~> 7.0)
+      activejob (~> 8.0)
       annotable (~> 0.1)
       colorize (~> 0.8)
       kiba (~> 4.0)
-      rufus-scheduler (~> 3.8)
-      thor (~> 1.2)
-      zeitwerk (~> 2.6)
+      rufus-scheduler (~> 3.9)
+      thor (~> 1.3)
+      zeitwerk (~> 2.7)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    activejob (7.0.4.3)
-      activesupport (= 7.0.4.3)
+    activejob (8.0.2)
+      activesupport (= 8.0.2)
       globalid (>= 0.3.6)
-    activesupport (7.0.4.3)
-      concurrent-ruby (~> 1.0, >= 1.0.2)
+    activesupport (8.0.2)
+      base64
+      benchmark (>= 0.3)
+      bigdecimal
+      concurrent-ruby (~> 1.0, >= 1.3.1)
+      connection_pool (>= 2.2.5)
+      drb
       i18n (>= 1.6, < 2)
+      logger (>= 1.4.2)
       minitest (>= 5.1)
-      tzinfo (~> 2.0)
+      securerandom (>= 0.3)
+      tzinfo (~> 2.0, >= 2.0.5)
+      uri (>= 0.13.1)
     annotable (0.1.2)
     ast (2.4.2)
+    base64 (0.2.0)
+    benchmark (0.4.0)
+    bigdecimal (3.1.9)
     colorize (0.8.1)
     commander (4.6.0)
       highline (~> 2.0.0)
-    concurrent-ruby (1.2.2)
+    concurrent-ruby (1.3.5)
+    connection_pool (2.5.3)
     debug (1.7.2)
       irb (>= 1.5.0)
       reline (>= 0.3.1)
     diff-lcs (1.5.0)
+    docile (1.4.1)
+    drb (2.2.1)
     et-orbi (1.2.7)
       tzinfo
     fugit (1.8.1)
@@ -47,6 +61,7 @@ GEM
     json (2.6.3)
     kiba (4.0.0)
     language_server-protocol (3.17.0.4)
+    logger (1.7.0)
     minitest (5.18.0)
     parallel (1.22.1)
     parlour (5.0.0)
@@ -56,10 +71,13 @@ GEM
       sorbet-runtime (>= 0.5)
     parser (3.2.2.0)
       ast (~> 2.4.1)
-    prism (0.19.0)
+    prism (1.4.0)
     raabro (1.4.0)
     rainbow (3.1.1)
     rake (13.0.6)
+    rbs (3.9.2)
+      logger
+    redcarpet (3.6.1)
     regexp_parser (2.7.0)
     reline (0.3.3)
       io-console (~> 0.5)
@@ -89,40 +107,54 @@ GEM
       unicode-display_width (>= 2.4.0, < 3.0)
     rubocop-ast (1.28.0)
       parser (>= 3.2.1.0)
-    ruby-lsp (0.13.3)
+    rubocop-rspec (3.0.0)
+      rubocop (~> 1.40)
+    ruby-lsp (0.23.16)
       language_server-protocol (~> 3.17.0)
-      prism (>= 0.19.0, < 0.20)
-      sorbet-runtime (>= 0.5.5685)
+      prism (>= 1.2, < 2.0)
+      rbs (>= 3, < 4)
+      sorbet-runtime (>= 0.5.10782)
     ruby-progressbar (1.13.0)
-    rufus-scheduler (3.8.2)
+    rufus-scheduler (3.9.1)
       fugit (~> 1.1, >= 1.1.6)
-    sorbet-runtime (0.5.10746)
+    securerandom (0.4.1)
+    simplecov (0.22.0)
+      docile (~> 1.1)
+      simplecov-html (~> 0.11)
+      simplecov_json_formatter (~> 0.1)
+    simplecov-html (0.13.1)
+    simplecov_json_formatter (0.1.4)
+    sorbet-runtime (0.5.12048)
     sord (4.0.0)
       commander (~> 4.5)
       parlour (~> 5.0)
       sorbet-runtime
       yard
-    thor (1.2.1)
+    thor (1.3.2)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (2.4.2)
+    uri (1.0.3)
     webrick (1.7.0)
     yard (0.9.28)
       webrick (~> 1.7.0)
-    zeitwerk (2.6.7)
+    zeitwerk (2.7.2)
 
 PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  debug (~> 1.6)
+  debug
   ductr!
-  rake (~> 13.0)
-  rspec (~> 3.0)
-  rubocop (~> 1.21)
+  rake
+  redcarpet
+  rspec
+  rubocop
+  rubocop-rspec
   ruby-lsp
-  sord (~> 4.0)
-  yard (~> 0.9)
+  simplecov
+  sord
+  yard
 
 BUNDLED WITH
    2.4.15

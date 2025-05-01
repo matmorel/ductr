@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
+require_relative "../mono_repo"
 require_relative "lib/ductr/version"
 
 Gem::Specification.new do |spec|
   spec.name = "ductr"
   spec.version = Ductr::VERSION
   spec.authors = ["Mathieu Morel"]
-  spec.email = ["mathieu@lamanufacture.dev"]
+  spec.email = ["matmorel@users.noreply.github.com"]
   spec.license = "LGPL-3.0-or-later"
 
   spec.summary = "Data pipeline and ETL framework."
   spec.description = "A data pipeline and ETL framework for ruby."
-  spec.homepage = "https://github.com/ductr-io/ductr"
+  spec.homepage = "https://github.com/matmorel/ductr"
   spec.required_ruby_version = ">= 3.1.0"
-  # TODO: Change gem server URL for a real one
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
   spec.metadata["rubygems_mfa_required"] = "true"
 
@@ -33,19 +33,13 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_development_dependency "debug", "~> 1.6"
-  spec.add_development_dependency "rake", "~> 13.0"
-  spec.add_development_dependency "rspec", "~> 3.0"
-  spec.add_development_dependency "rubocop", "~> 1.21"
-  spec.add_development_dependency "ruby-lsp", "~> 0.13"
-  spec.add_development_dependency "sord", "~> 4.0"
-  spec.add_development_dependency "yard", "~> 0.9"
+  MonoRepo.add_development_dependencies(spec)
 
   spec.add_dependency "activejob", "~> 8.0"
   spec.add_dependency "annotable", "~> 0.1"
   spec.add_dependency "colorize", "~> 0.8"
   spec.add_dependency "kiba", "~> 4.0"
-  spec.add_dependency "rufus-scheduler", "~> 3.8"
-  spec.add_dependency "thor", "~> 1.2"
-  spec.add_dependency "zeitwerk", "~> 2.6"
+  spec.add_dependency "rufus-scheduler", "~> 3.9"
+  spec.add_dependency "thor", "~> 1.3"
+  spec.add_dependency "zeitwerk", "~> 2.7"
 end
