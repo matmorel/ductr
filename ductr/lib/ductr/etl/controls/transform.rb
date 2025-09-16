@@ -8,13 +8,15 @@ module Ductr
     class Transform < Control
       #
       # Calls the control method and passes the row.
+      # You must return nil if you use the row yielder block.
       #
       # @param [Object] row The row to process
+      # @yield [row] The row yielder
       #
       # @return [void]
       #
-      def process(row)
-        call_method(row)
+      def process(row, &)
+        call_method(row, &)
       end
 
       #
