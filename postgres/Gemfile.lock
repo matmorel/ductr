@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ductr-postgres (0.2.1)
+    ductr-postgres (0.2.2)
       ductr (>= 0.2)
       pg (~> 1.5)
       sequel (~> 5.91)
