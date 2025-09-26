@@ -49,6 +49,12 @@ module Ductr
 
       # Closes the database connection.
       def close!: () -> void
+
+      # sord warn - Sequel::Database wasn't able to be resolved to a constant in this project
+      # Open a new connection, ensure to close it with the #disconnect method.
+      # 
+      # _@return_ — The database connection instance
+      def new_connection: () -> Sequel::Database
     end
 
     # 
@@ -135,7 +141,7 @@ module Ductr
     # 
     #   destination :some_postgres_database, :basic
     #   def select_some_stuff(db, row)
-    #     db[:items].update(row)
+    #     db[:items].where(id: row[:id]).update(**row)
     #   end
     class BasicDestination < Ductr::SequelBase::BasicDestination
     end

@@ -7,7 +7,7 @@ module Ductr
     #
     #   destination :some_postgres_database, :basic
     #   def select_some_stuff(db, row)
-    #     db[:items].update(row)
+    #     db[:items].where(id: row[:id]).update(**row)
     #   end
     #
     class BasicDestination < Ductr::SequelBase::BasicDestination

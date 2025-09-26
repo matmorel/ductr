@@ -31,12 +31,7 @@ module Ductr
       # @return [Sequel::Database] The database connection instance
       #
       def open!
-        @db = Sequel.postgres(**config)
-
-        @db.extension(:pg_streaming)
-        @db.stream_all_queries = true
-
-        @db
+        @db = new_connection
       end
 
       #
@@ -46,6 +41,20 @@ module Ductr
       #
       def close!
         @db.disconnect
+      end
+
+      #
+      # Open a new connection, ensure to close it with the #disconnect method.
+      #
+      # @return [Sequel::Database] The database connection instance
+      #
+      def new_connection
+        db = Sequel.postgres(**config)
+
+        db.extension(:pg_streaming)
+        db.stream_all_queries = true
+
+        db
       end
     end
   end
